@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guestbook App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Guestbook App</h1>
+    <form id="messageForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="comment">Comment:</label>
+        <textarea id="comment" name="comment" rows="4" cols="50" required></textarea>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="messageList"></div>
+
+    <script>
+        document.getElementById('messageForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch('/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(Object.fromEntries(formData)),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                fetchMessages();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function fetchMessages() {
+            fetch('/messages')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Messages:', data);
+                displayMessages(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function displayMessages(messages) {
+            var messageList = document.getElementById('messageList');
+            messageList.innerHTML = '';
+            messages.forEach(function(message) {
+                var messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.innerHTML = '<strong>' + message.name + '</strong>: ' + message.comment;
+                messageList.appendChild(messageDiv);
+            });
+        }
+
+        fetchMessages();
+    </script>
+</body>
+</html>
+
